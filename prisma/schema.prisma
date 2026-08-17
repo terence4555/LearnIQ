@@ -26,6 +26,8 @@ model User {
   progress     Progress[]
 
   openSubmissions OpenSubmission[]
+  stageProgress    StageProgress[]
+  levelExamAttempts LevelExamAttempt[]
 }
 
 model Account {
@@ -74,6 +76,7 @@ model Question {
   module        String
   section       String
   topic         String?
+  stage         Int? 
   level         String
   difficulty    Int          @default(1)
   type          QuestionType @default(MCQ)
@@ -141,6 +144,7 @@ model ReadingPassage {
   module    String     @default("english")
   mode      String     @default("reading")
   level     String
+  stage     Int?
   title     String
   content   String
   createdAt DateTime   @default(now())
@@ -172,4 +176,32 @@ model OpenSubmission {
 
   user   User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   prompt OpenPrompt @relation(fields: [promptId], references: [id], onDelete: Cascade)
+}
+
+model StageProgress {
+  id          String    @id @default(cuid())
+  userId      String
+  module      String
+  section     String
+  stage       Int
+  completed   Boolean   @default(false)
+  score       Float?
+  attempts    Int       @default(0)
+  completedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, module, section, stage])
+}
+
+model LevelExamAttempt {
+  id          String   @id @default(cuid())
+  userId      String
+  module      String
+  level       String
+  score       Float
+  passed      Boolean
+  completedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

@@ -4,9 +4,9 @@ import Link from "next/link";
 import { PageShell, SoftCard } from "@/components/PageShell";
 
 const SECTIONS = [
-  { key: "grammar", label: "Grammar", href: "/english/grammar", description: "Temps, modaux, voix passive..." },
-  { key: "vocabulary", label: "Vocabulary", href: "/english/vocabulary", description: "Synonymes, phrasal verbs, collocations..." },
-  { key: "reading", label: "Reading", href: "/english/reading", description: "Compréhension de textes" },
+  { key: "grammar", label: "Grammar", href: "/english/grammar/", description: "Temps, modaux, voix passive..." },
+  { key: "vocabulary", label: "Vocabulary", href: "/english/vocabulary/stages", description: "Synonymes, phrasal verbs, collocations..." },
+  { key: "reading", label: "Reading", href: "/english/reading/stages", description: "Compréhension de textes" },
 ];
 
 export default async function EnglishHubPage() {

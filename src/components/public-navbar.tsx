@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { LogoIcon } from "@/components/logo-icon";
 
 export function PublicNavbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -15,7 +16,7 @@ export function PublicNavbar() {
     <header className="border-b border-black/10 bg-white">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
         <a href="/" className="flex items-center gap-2">
-          <span className="text-2xl">💻</span>
+          <LogoIcon />
           <span className="font-[family-name:var(--font-heading)] text-lg font-semibold text-[var(--color-ink)]">
             LearnIQ
           </span>
