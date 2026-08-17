@@ -1,0 +1,67 @@
+/**
+ * Tokens LearnIQ — deux systèmes cohabitent dans globals.css
+ * -------------------------------------------------------------
+ * 1) Tokens "par défaut" (--color-*)      → landing page, dashboard,
+ *    /english, /toefl. Inspirés du template Wix "Cours en ligne" :
+ *    fond blanc, accent bleu marine, blocs crème/lavande unis,
+ *    sans-serif géométrique, coins carrés, boutons rectangulaires.
+ *
+ * 2) Tokens "admin" (--admin-color-*)      → /admin uniquement.
+ *    C'est l'ancien système "papier d'examen" (Fraunces + IBM Plex
+ *    Mono), conservé tel quel pour l'esthétique utilitaire/dense
+ *    du back-office.
+ */
+
+:root {
+  /* Polices — défaut (landing + app) */
+  --font-heading: var(--font-poppins);
+  --font-body: var(--font-dm-sans);
+
+  /* Palette par défaut */
+  --color-bg: #ffffff;            /* fond de page, blanc */
+  --color-bg-alt: #f2f2f2;        /* fond de section alterné, gris clair */
+  --color-surface: #ffffff;       /* cartes */
+  --color-ink: #111111;           /* texte principal */
+  --color-ink-soft: #55575f;      /* texte secondaire */
+  --color-rule: #e5e5e5;          /* liserés, séparateurs */
+
+  --color-accent: #2b2f6e;        /* bleu marine — accent principal */
+  --color-accent-soft: #fbe9d7;   /* bloc crème pâle */
+  --color-accent-strong: #1e2150;
+
+  --color-secondary: #dcdaf5;     /* bloc lavande pâle — accent secondaire */
+  --color-secondary-soft: #ece9fa;
+  --color-secondary-strong: #b5b1e8;
+
+  --radius-card: 0px;
+  --radius-pill: 4px;
+
+  /* Polices — admin uniquement */
+  --font-admin-serif: var(--font-fraunces);
+  --font-admin-mono: var(--font-ibm-plex-mono);
+
+  /* Palette admin (ancien système, inchangé) */
+  --admin-color-paper: #faf6ec;
+  --admin-color-paper-strong: #fffdf7;
+  --admin-color-rule: #ded5c2;
+  --admin-color-ink: #2a2620;
+  --admin-color-ink-soft: #6b6459;
+  --admin-color-amber: #c98a2c;
+  --admin-color-amber-soft: #f3e4c6;
+  --admin-color-teal: #2f6f62;
+  --admin-color-teal-soft: #dcede7;
+  --admin-color-coral: #c1503a;
+  --admin-color-coral-soft: #f5dbd2;
+}
+
+/* Texture papier réglé — réservée à /admin */
+.admin-paper-ruled {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent,
+    transparent 27px,
+    var(--admin-color-rule) 27px,
+    var(--admin-color-rule) 28px
+  );
+  background-attachment: local;
+}
