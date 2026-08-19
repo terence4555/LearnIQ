@@ -1,82 +1,76 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Quiz } from "@/components/quiz";
-import { PageShell, SoftCard } from "@/components/PageShell";
-import type { Question, UserAnswer } from "@/types/quiz";
+import { useRouter } from "next/navigation";
 
-export default function VocabularyPage() {
-  const [questions, setQuestions] = useState<Question[]>([]);
+type Stage = {
+  stage: number;
+  completed: boolean;
+  unlocked: boolean;
+  score: number | null;
+  attempts: number;
+  topics: string[];
+};
+
+export default function VocabularyStagesPage() {
+  const router = useRouter();
+  const [stages, setStages] = useState<Stage[]>([]);
   const [loading, setLoading] = useState(true);
-  const [result, setResult] = useState<{ score: number; correctCount: number; total: number } | null>(null);
 
   useEffect(() => {
-    fetch("/api/questions?module=english&section=vocabulary&level=B1&limit=10")
+    fetch("/api/stages?module=english&section=vocabulary")
       .then((res) => res.json())
       .then((data) => {
-        setQuestions(data);
+        setStages(data);
         setLoading(false);
       });
   }, []);
 
-  async function handleComplete(answers: UserAnswer[]) {
-    const res = await fetch("/api/attempts", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ module: "english", answers }),
-    });
+  if (loading) return <p className="p-6">Chargement...</p>;
 
-    if (res.ok) {
-      const data = await res.json();
-      setResult(data);
-    }
-  }
-
-  if (loading)
-    return (
-      <PageShell title="Chargement..." subtitle="Préparation du quiz">
-        <SoftCard>Chargement des questions...</SoftCard>
-      </PageShell>
-    );
-
-  if (result) {
-    return (
-      <PageShell
-        title="Résultat du Quiz"
-        subtitle="Vocabulary"
-        accent="primary"
-        stats={[
-          { label: "Score", value: `${result.score}%` },
-          { label: "Correctes", value: `${result.correctCount}/${result.total}` },
-        ]}
-      >
-        <SoftCard>
-          <h2 className="font-[family-name:var(--font-heading)] text-xl font-semibold text-[var(--color-ink)] mb-4">
-            Excellent !
-          </h2>
-          <p className="text-[var(--color-ink-soft)]">
-            Tu as obtenu {result.correctCount} réponses correctes sur {result.total}.
-          </p>
-        </SoftCard>
-      </PageShell>
-    );
-  }
+  const completedCount = stages.filter((s) => s.completed).length;
 
   return (
-    <PageShell
-      eyebrow="Module · Anglais"
-      title="Vocabulary"
-      subtitle="10 questions pour renforcer ton vocabulaire"
-      accent="primary"
-      breadcrumbs={[
-        { label: "Dashboard", href: "/dashboard" },
-        { label: "English", href: "/english" },
-        { label: "Vocabulary" },
-      ]}
-    >
-      <SoftCard>
-        <Quiz questions={questions} onComplete={handleComplete} />
-      </SoftCard>
-    </PageShell>
+    <div className="mx-auto max-w-4xl space-y-6 p-6">
+      <div>
+        <h1 className="text-2xl font-bold">Vocabulary — Parcours B1</h1>
+        <p className="text-sm text-gray-500">{completedCount}/10 étapes validées</p>
+        <div className="mt-2 h-2 w-full rounded-full bg-gray-100">
+          <div className="h-2 rounded-full bg-black" style={{ width: `${completedCount * 10}%` }} />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {stages.map((s) => (
+          <button
+            key={s.stage}
+            onClick={() => s.unlocked && router.push(`/english/vocabulary/stages/${s.stage}`)}
+            disabled={!s.unlocked}
+            className={`flex flex-col gap-3 rounded-xl border p-5 text-left transition ${
+              s.unlocked ? "hover:border-black hover:shadow-md cursor-pointer" : "opacity-50 cursor-not-allowed"
+            } ${s.completed ? "border-green-500 bg-green-50" : "bg-white"}`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-sm font-semibold">
+                {s.unlocked ? s.stage : "🔒"}
+              </span>
+              {s.completed && <span className="text-sm text-green-600">✓ {s.score}%</span>}
+            </div>
+
+            <div>
+              <p className="font-semibold">Étape {s.stage}</p>
+              <p className="mt-1 text-xs text-gray-500">
+                {s.topics.length > 0 ? s.topics.join(" · ") : "Thème non défini"}
+              </p>
+            </div>
+
+            {!s.completed && s.unlocked && s.attempts > 0 && (
+              <span className="text-xs text-orange-600">Dernier essai : {s.score}%</span>
+            )}
+            {!s.unlocked && <span className="text-xs text-gray-400">Verrouillée</span>}
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }

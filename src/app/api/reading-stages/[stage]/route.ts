@@ -37,7 +37,7 @@ export async function GET(
     }
   }
 
-  const passage = await prisma.readingPassage.findFirst({
+    const passage = await prisma.readingPassage.findFirst({
     where: { module, mode: "reading", stage },
     select: {
       id: true,
@@ -57,5 +57,8 @@ export async function GET(
     return NextResponse.json({ error: "Texte introuvable" }, { status: 404 });
   }
 
-  return NextResponse.json(passage);
+  // Limite à 10 questions max, mélangées
+  const shuffledQuestions = [...passage.questions].sort(() => Math.random() - 0.5).slice(0, 10);
+
+  return NextResponse.json({ ...passage, questions: shuffledQuestions });
 }

@@ -18,7 +18,7 @@ const schema = z.object({
     .max(20),
 });
 
-const PASS_THRESHOLD = 80; // % minimum pour valider l'étape
+const PASS_THRESHOLD = 80;
 
 export async function POST(req: Request) {
   const session = await auth();
@@ -38,33 +38,35 @@ export async function POST(req: Request) {
     const questionIds = answers.map((a) => a.questionId);
     const questions = await prisma.question.findMany({
       where: { id: { in: questionIds } },
-      select: { id: true, correctAnswer: true },
+      select: { id: true, content: true, correctAnswer: true, explanation: true },
     });
-    const correctMap = new Map(questions.map((q) => [q.id, q.correctAnswer]));
+    const questionMap = new Map(questions.map((q) => [q.id, q]));
 
-    const correctCount = answers.filter((a) => correctMap.get(a.questionId) === a.answer).length;
+    const detailedAnswers = answers.map((a) => {
+      const q = questionMap.get(a.questionId);
+      return {
+        questionId: a.questionId,
+        content: q?.content ?? "",
+        yourAnswer: a.answer,
+        correctAnswer: q?.correctAnswer ?? "",
+        explanation: q?.explanation ?? null,
+        isCorrect: q?.correctAnswer === a.answer,
+      };
+    });
+
+    const correctCount = detailedAnswers.filter((a) => a.isCorrect).length;
     const score = Math.round((correctCount / answers.length) * 100);
     const passed = score >= PASS_THRESHOLD;
 
     const existing = await prisma.stageProgress.findUnique({
       where: {
-        userId_module_section_stage: {
-          userId: session.user.id,
-          module,
-          section,
-          stage,
-        },
+        userId_module_section_stage: { userId: session.user.id, module, section, stage },
       },
     });
 
     const stageProgress = await prisma.stageProgress.upsert({
       where: {
-        userId_module_section_stage: {
-          userId: session.user.id,
-          module,
-          section,
-          stage,
-        },
+        userId_module_section_stage: { userId: session.user.id, module, section, stage },
       },
       update: {
         completed: passed || existing?.completed || false,
@@ -73,37 +75,20 @@ export async function POST(req: Request) {
         completedAt: passed ? new Date() : existing?.completedAt,
       },
       create: {
-        userId: session.user.id,
-        module,
-        section,
-        stage,
-        completed: passed,
-        score,
-        attempts: 1,
+        userId: session.user.id, module, section, stage,
+        completed: passed, score, attempts: 1,
         completedAt: passed ? new Date() : null,
       },
     });
 
-    // Met aussi à jour Progress (vue globale section) avec le % d'étapes validées
     const totalCompletedStages = await prisma.stageProgress.count({
       where: { userId: session.user.id, module, section, completed: true },
     });
 
     await prisma.progress.upsert({
-      where: {
-        userId_module_section: { userId: session.user.id, module, section },
-      },
-      update: {
-        completionPercentage: totalCompletedStages * 10,
-        score,
-      },
-      create: {
-        userId: session.user.id,
-        module,
-        section,
-        completionPercentage: totalCompletedStages * 10,
-        score,
-      },
+      where: { userId_module_section: { userId: session.user.id, module, section } },
+      update: { completionPercentage: totalCompletedStages * 10, score },
+      create: { userId: session.user.id, module, section, completionPercentage: totalCompletedStages * 10, score },
     });
 
     return NextResponse.json({
@@ -113,6 +98,7 @@ export async function POST(req: Request) {
       passed,
       stageCompleted: stageProgress.completed,
       threshold: PASS_THRESHOLD,
+      details: detailedAnswers, // détail complet, utilisé pour l'affichage du résultat
     });
   } catch (err) {
     console.error(err);

@@ -55,8 +55,8 @@ export async function GET(
     },
   });
 
-  // Pioche 5 questions au hasard parmi celles de l'étape
-  const shuffled = allQuestions.sort(() => Math.random() - 0.5).slice(0, 5);
+  // Pioche 15 questions au hasard parmi celles de l'étape
+  const shuffled = allQuestions.sort(() => Math.random() - 0.5).slice(0, 15);
 
   return NextResponse.json(shuffled);
 }

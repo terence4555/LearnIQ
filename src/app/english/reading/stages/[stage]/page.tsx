@@ -31,6 +31,7 @@ export default function ReadingStageQuizPage() {
     total: number;
     passed: boolean;
     threshold: number;
+    details: any[];
   } | null>(null);
 
   useEffect(() => {
@@ -84,12 +85,39 @@ export default function ReadingStageQuizPage() {
 
   if (result) {
     return (
-      <div className="mx-auto max-w-md space-y-4 p-6 text-center">
-        <h1 className="text-xl font-bold">{result.passed ? "✓ Étape validée !" : "Étape non validée"}</h1>
-        <p className="text-3xl font-bold">{result.score}%</p>
-        <p className="text-sm text-gray-500">
-          {result.correctCount}/{result.total} bonnes réponses — seuil requis : {result.threshold}%
-        </p>
+      <div className="mx-auto max-w-2xl space-y-6 p-6">
+        <div className="text-center">
+          <h1 className="text-xl font-bold">
+            {result.passed ? "✓ Étape validée !" : "Étape non validée"}
+          </h1>
+          <p className="mt-2 text-3xl font-bold">{result.score}%</p>
+          <p className="text-sm text-gray-500">
+            {result.correctCount}/{result.total} bonnes réponses — seuil requis : {result.threshold}%
+          </p>
+        </div>
+
+        {result.details && result.details.some((d: any) => !d.isCorrect) && (
+          <div className="space-y-3">
+            <h2 className="font-semibold text-gray-700">Corrections</h2>
+            {result.details
+              .filter((d: any) => !d.isCorrect)
+              .map((d: any, i: number) => (
+                <div key={i} className="rounded-lg border border-red-200 bg-red-50 p-4">
+                  <p className="text-sm font-medium">{d.content}</p>
+                  <p className="mt-2 text-sm text-red-700">
+                    Ta réponse : <span className="font-medium">{d.yourAnswer}</span>
+                  </p>
+                  <p className="text-sm text-green-700">
+                    Bonne réponse : <span className="font-medium">{d.correctAnswer}</span>
+                  </p>
+                  {d.explanation && (
+                    <p className="mt-1 text-xs text-gray-500">{d.explanation}</p>
+                  )}
+                </div>
+              ))}
+          </div>
+        )}
+
         <div className="flex gap-2">
           <button onClick={() => window.location.reload()} className="flex-1 rounded border py-2">
             Réessayer
@@ -104,7 +132,6 @@ export default function ReadingStageQuizPage() {
       </div>
     );
   }
-
   if (!started) {
     return (
       <div className="mx-auto max-w-2xl space-y-4 p-6">

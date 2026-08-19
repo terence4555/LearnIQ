@@ -5,11 +5,11 @@ import { useRouter } from "next/navigation";
 
 type Stage = {
   stage: number;
-  title: string | null;
   completed: boolean;
   unlocked: boolean;
   score: number | null;
   attempts: number;
+  topics: string[];
 };
 
 export default function ReadingStagesPage() {
@@ -18,7 +18,7 @@ export default function ReadingStagesPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/reading-stages?module=english")
+    fetch("/api/stages?module=english&section=reading")
       .then((res) => res.json())
       .then((data) => {
         setStages(data);
@@ -31,7 +31,7 @@ export default function ReadingStagesPage() {
   const completedCount = stages.filter((s) => s.completed).length;
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6 p-6">
+    <div className="mx-auto max-w-4xl space-y-6 p-6">
       <div>
         <h1 className="text-2xl font-bold">Reading — Parcours B1</h1>
         <p className="text-sm text-gray-500">{completedCount}/10 étapes validées</p>
@@ -40,38 +40,34 @@ export default function ReadingStagesPage() {
         </div>
       </div>
 
-      <div className="space-y-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {stages.map((s) => (
           <button
             key={s.stage}
             onClick={() => s.unlocked && router.push(`/english/reading/stages/${s.stage}`)}
             disabled={!s.unlocked}
-            className={`flex w-full items-center justify-between rounded-lg border p-4 text-left transition ${
-              s.unlocked ? "hover:border-black cursor-pointer" : "opacity-50 cursor-not-allowed"
-            } ${s.completed ? "border-green-500 bg-green-50" : ""}`}
+            className={`flex flex-col gap-3 rounded-xl border p-5 text-left transition ${
+              s.unlocked ? "hover:border-black hover:shadow-md cursor-pointer" : "opacity-50 cursor-not-allowed"
+            } ${s.completed ? "border-green-500 bg-green-50" : "bg-white"}`}
           >
-            <div className="flex items-center gap-3">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-sm font-semibold">
+            <div className="flex items-center justify-between">
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-sm font-semibold">
                 {s.unlocked ? s.stage : "🔒"}
               </span>
-              <div>
-                <p className="font-medium">Étape {s.stage}</p>
-                <p className="text-xs text-gray-500">{s.title ?? "—"}</p>
-              </div>
+              {s.completed && <span className="text-sm text-green-600">✓ {s.score}%</span>}
             </div>
-            <div className="text-right text-sm">
-              {s.completed ? (
-                <span className="text-green-600">✓ Validée ({s.score}%)</span>
-              ) : s.unlocked ? (
-                s.attempts > 0 ? (
-                  <span className="text-orange-600">Dernier essai : {s.score}%</span>
-                ) : (
-                  <span className="text-gray-400">Non commencée</span>
-                )
-              ) : (
-                <span className="text-gray-400">Verrouillée</span>
-              )}
+
+            <div>
+              <p className="font-semibold">Étape {s.stage}</p>
+              <p className="mt-1 text-xs text-gray-500">
+                {s.topics.length > 0 ? s.topics.join(" · ") : "Thème non défini"}
+              </p>
             </div>
+
+            {!s.completed && s.unlocked && s.attempts > 0 && (
+              <span className="text-xs text-orange-600">Dernier essai : {s.score}%</span>
+            )}
+            {!s.unlocked && <span className="text-xs text-gray-400">Verrouillée</span>}
           </button>
         ))}
       </div>

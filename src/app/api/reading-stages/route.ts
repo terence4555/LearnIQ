@@ -10,31 +10,20 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url);
   const module = searchParams.get("module") ?? "english";
-  const section = searchParams.get("section");
 
-  if (!section) {
-    return NextResponse.json({ error: "section requise" }, { status: 400 });
-  }
-
-  const [stageProgress, questions] = await Promise.all([
+  const [stageProgress, passages] = await Promise.all([
     prisma.stageProgress.findMany({
-      where: { userId: session.user.id, module, section },
+      where: { userId: session.user.id, module, section: "reading" },
     }),
-    prisma.question.findMany({
-      where: { module, section, status: "published", stage: { not: null } },
-      select: { stage: true, topic: true },
+    prisma.readingPassage.findMany({
+      where: { module, mode: "reading", stage: { not: null } },
+      select: { stage: true, title: true },
+      orderBy: { stage: "asc" },
     }),
   ]);
 
   const progressByStage = new Map(stageProgress.map((s) => [s.stage, s]));
-
-  // Regroupe les topics distincts par étape
-  const topicsByStage = new Map<number, Set<string>>();
-  for (const q of questions) {
-    if (q.stage == null) continue;
-    if (!topicsByStage.has(q.stage)) topicsByStage.set(q.stage, new Set());
-    if (q.topic) topicsByStage.get(q.stage)!.add(q.topic);
-  }
+  const passageByStage = new Map(passages.map((p) => [p.stage as number, p.title]));
 
   const stages = [];
   let previousCompleted = true;
@@ -42,15 +31,14 @@ export async function GET(req: NextRequest) {
   for (let stage = 1; stage <= 10; stage++) {
     const progress = progressByStage.get(stage);
     const completed = progress?.completed ?? false;
-    const topics = Array.from(topicsByStage.get(stage) ?? []);
 
     stages.push({
       stage,
+      title: passageByStage.get(stage) ?? null,
       completed,
       unlocked: previousCompleted,
       score: progress?.score ?? null,
       attempts: progress?.attempts ?? 0,
-      topics,
     });
 
     previousCompleted = completed;
